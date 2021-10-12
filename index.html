@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery.min.js"></script>
+        <script src="https://markjivko.com/dist/recorder.js"></script>
+        <script>
+            jQuery(document).ready(function () {
+                var $ = jQuery;
+                var myRecorder = {
+                    objects: {
+                        context: null,
+                        stream: null,
+                        recorder: null
+                    },
+                    init: function () {
+                        if (null === myRecorder.objects.context) {
+                            myRecorder.objects.context = new (
+                                    window.AudioContext || window.webkitAudioContext
+                                    );
+                        }
+                    },
+                    start: function () {
+                        var options = {audio: true, video: false};
+                        navigator.mediaDevices.getUserMedia(options).then(function (stream) {
+                            myRecorder.objects.stream = stream;
+                            myRecorder.objects.recorder = new Recorder(
+                                    myRecorder.objects.context.createMediaStreamSource(stream),
+                                    {numChannels: 1}
+                            );
+                            myRecorder.objects.recorder.record();
+                        }).catch(function (err) {});
+                    },
+                    stop: function (listObject) {
+                        if (null !== myRecorder.objects.stream) {
+                            myRecorder.objects.stream.getAudioTracks()[0].stop();
+                        }
+                        if (null !== myRecorder.objects.recorder) {
+                            myRecorder.objects.recorder.stop();
+
+                            // Validate object
+                            if (null !== listObject
+                                    && 'object' === typeof listObject
+                                    && listObject.length > 0) {
+                                // Export the WAV file
+                                myRecorder.objects.recorder.exportWAV(function (blob) {
+                                    var url = (window.URL || window.webkitURL)
+                                            .createObjectURL(blob);
+
+                                    // Prepare the playback
+                                    var audioObject = $('<audio controls></audio>')
+                                            .attr('src', url);
+
+                                    // Prepare the download link
+                                    var downloadObject = $('<a>&#9660;</a>')
+                                            .attr('href', url)
+                                            .attr('download', new Date().toUTCString() + '.wav');
+
+                                    // Wrap everything in a row
+                                    var holderObject = $('<div class="row"></div>')
+                                            .append(audioObject)
+                                            .append(downloadObject);
+
+                                    // Append to the list
+                                    listObject.append(holderObject);
+                                });
+                            }
+                        }
+                    }
+                };
+
+                // Prepare the recordings list
+                var listObject = $('[data-role="recordings"]');
+
+                // Prepare the record button
+                $('[data-role="controls"] > button').click(function () {
+                    // Initialize the recorder
+                    myRecorder.init();
+
+                    // Get the button state 
+                    var buttonState = !!$(this).attr('data-recording');
+
+                    // Toggle
+                    if (!buttonState) {
+                        $(this).attr('data-recording', 'true');
+                        myRecorder.start();
+                    } else {
+                        $(this).attr('data-recording', '');
+                        myRecorder.stop(listObject);
+                    }
+                });
+            });
+        </script>
+ 
+
+  <title>Piano</title>
+</head>
+<body>
+  <div class="holder">
+    <div data-role="controls">
+      <button>Record</button>
+    </div>
+    <div data-role="recordings"></div>
+  </div>
+  <div class="piano">
+    <div data-note="C" class="key white"></div>
+    <div data-note="Db" class="key black"></div>
+    <div data-note="D" class="key white"></div>
+    <div data-note="Eb" class="key black"></div>
+    <div data-note="E" class="key white"></div>
+    <div data-note="F" class="key white"></div>
+    <div data-note="Gb" class="key black"></div>
+    <div data-note="G" class="key white"></div>
+    <div data-note="Ab" class="key black"></div>
+    <div data-note="A" class="key white"></div>
+    <div data-note="Bb" class="key black"></div>
+    <div data-note="B" class="key white"></div>
+  </div>
+
+  <audio id="C" src="Piano Notes/notes_C.mp3"></audio>
+  <audio id="Db" src="Piano Notes/notes_Db.mp3"></audio>
+  <audio id="D" src="Piano Notes/notes_D.mp3"></audio>
+  <audio id="Eb" src="Piano Notes/notes_Eb.mp3"></audio>
+  <audio id="E" src="Piano Notes/notes_E.mp3"></audio>
+  <audio id="F" src="Piano Notes/notes_F.mp3"></audio>
+  <audio id="Gb" src="Piano Notes/notes_Gb.mp3"></audio>
+  <audio id="G" src="Piano Notes/notes_G.mp3"></audio>
+  <audio id="Ab" src="Piano Notes/notes_Ab.mp3"></audio>
+  <audio id="A" src="Piano Notes/notes_A.mp3"></audio>
+  <audio id="Bb" src="Piano Notes/notes_Bb.mp3"></audio>
+  <audio id="B" src="Piano Notes/notes_B.mp3"></audio>
+
+</body>
+</html>
